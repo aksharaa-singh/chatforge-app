@@ -3,9 +3,9 @@
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
-export default function SigninPage() {
+function SigninForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/chat";
@@ -176,5 +176,19 @@ export default function SigninPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function SigninPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 py-10 text-sm text-neutral-400">
+          Loading sign in page...
+        </main>
+      }
+    >
+      <SigninForm />
+    </Suspense>
   );
 }

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
   const token = searchParams.get("token") || "";
@@ -16,13 +16,13 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     async function verifyEmail() {
-  if (hasVerifiedRef.current) {
-    return;
-  }
+      if (hasVerifiedRef.current) {
+        return;
+      }
 
-  hasVerifiedRef.current = true;
+      hasVerifiedRef.current = true;
 
-  if (!email || !token) {
+      if (!email || !token) {
         setError("This ChatForge verification link is missing information.");
         setIsVerifying(false);
         return;
@@ -100,5 +100,19 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 py-10 text-sm text-neutral-400">
+          Loading verification page...
+        </main>
+      }
+    >
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
