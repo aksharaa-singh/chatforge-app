@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ChatForge
 
-## Getting Started
+ChatForge is a full-stack AI chat app built with Next.js, TypeScript, Prisma, PostgreSQL, and NextAuth.
 
-First, run the development server:
+## What Works
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Signup
+- Signin
+- Logout
+- Email verification
+- Forgot password
+- Reset password
+- Protected chat page
+- Create chats
+- Rename chats
+- Delete chats
+- Save chat history
+- Load older messages
+- Choose model provider
+- Send real AI messages through OpenRouter
+
+## Start The App
+
+Open PowerShell 1:
+
+```powershell
+cd $HOME\Documents\chatforge-app
+npx.cmd prisma dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Keep it open.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open PowerShell 2:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```powershell
+cd $HOME\Documents\chatforge-app
+npm.cmd run dev
+```
 
-## Learn More
+Open:
 
-To learn more about Next.js, take a look at the following resources:
+```txt
+http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Important Files
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `prisma/schema.prisma` - database models
+- `auth.ts` - authentication config
+- `components/chat-app.tsx` - main ChatForge UI
+- `lib/llm` - LLM provider abstraction
+- `.env` - private secrets
+- `.env.example` - example environment variables
 
-## Deploy on Vercel
+## Environment Setup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+ChatForge currently uses OpenRouter for real AI responses:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```env
+OPENROUTER_API_KEY=""
+```
+
+The UI shows:
+
+- OpenAI
+- Claude
+- DeepSeek
+
+For beginner/local development, all three visible choices route through OpenRouter free models behind the scenes.
+
+Optional direct-provider keys can be added later:
+
+```env
+OPENAI_API_KEY=""
+ANTHROPIC_API_KEY=""
+DEEPSEEK_API_KEY=""
+```
+
+Google login needs:
+
+```env
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+```
+
+Gmail email sending works without buying a domain:
+
+```env
+EMAIL_PROVIDER="gmail"
+GMAIL_USER="yourgmail@gmail.com"
+GMAIL_APP_PASSWORD="your-gmail-app-password"
+EMAIL_FROM="ChatForge <yourgmail@gmail.com>"
+```
+
+For Gmail, enable 2-Step Verification on the Gmail account and create an App
+Password. Use that App Password as `GMAIL_APP_PASSWORD`, not your normal Gmail
+password.
+
+Resend can still be used later if you verify a domain:
+
+```env
+EMAIL_PROVIDER="resend"
+RESEND_API_KEY=""
+EMAIL_FROM="ChatForge <noreply@yourdomain.com>"
+```
+
+Your local `.env` can contain real working keys for Google login, Gmail email,
+and OpenRouter AI responses. The `.env.example` file intentionally keeps those
+values blank.
+
+Never share your `.env` file.
+
+## Useful Commands
+
+Run lint:
+
+```powershell
+npm.cmd run lint
+```
+
+Validate Prisma:
+
+```powershell
+npx.cmd prisma validate
+```
+
+Push schema changes to the local database:
+
+```powershell
+npx.cmd prisma db push
+```
+
+Generate Prisma Client:
+
+```powershell
+npx.cmd prisma generate
+```
