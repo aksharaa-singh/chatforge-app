@@ -29,20 +29,24 @@ import type { ChatMessage, ChatSummary, ModelOption } from "@/lib/types";
 
 const PROMPT_SUGGESTIONS = [
   {
-    title: "Explain a concept",
-    prompt: "Explain the difference between authentication and authorization in simple terms.",
+    title: "Learn",
+    prompt:
+      "Explain a difficult concept in simple words, then quiz me with 3 questions.",
   },
   {
-    title: "Draft an email",
-    prompt: "Draft a polite follow-up email asking for an update on a project.",
+    title: "Write",
+    prompt:
+      "Help me write a clear, professional email and give me 2 tone options.",
   },
   {
-    title: "Brainstorm ideas",
-    prompt: "Brainstorm 10 useful feature ideas for a productivity app.",
+    title: "Code",
+    prompt:
+      "Help me plan a small coding project with files, steps, and beginner-friendly explanations.",
   },
   {
-    title: "Summarize text",
-    prompt: "Give me a concise summary checklist for launching a small web app.",
+    title: "Plan",
+    prompt:
+      "Turn this goal into a practical step-by-step plan with priorities and deadlines.",
   },
 ];
 
@@ -87,6 +91,10 @@ export function ChatApp({
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+const [isCompactMode, setIsCompactMode] = useState(false);
+const [isTypewriterEnabled, setIsTypewriterEnabled] = useState(true);
+const [theme, setTheme] = useState<"dark" | "graphite">("dark");
   const [isLoadingChats, setIsLoadingChats] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
@@ -106,6 +114,48 @@ export function ChatApp({
     chat.title.toLowerCase().includes(chatSearch.trim().toLowerCase())
   );
   const activeChat = chats.find((chat) => chat.id === activeChatId);
+  function isSameDay(firstDate: Date, secondDate: Date) {
+  return firstDate.toDateString() === secondDate.toDateString();
+}
+
+function getChatGroups(chatList: ChatSummary[]) {
+  const now = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+
+  return [
+    {
+      label: "Pinned",
+      chats: chatList.filter((chat) => chat.pinned),
+    },
+    {
+      label: "Today",
+      chats: chatList.filter(
+        (chat) => !chat.pinned && isSameDay(new Date(chat.updatedAt), now)
+      ),
+    },
+    {
+      label: "Yesterday",
+      chats: chatList.filter(
+        (chat) =>
+          !chat.pinned && isSameDay(new Date(chat.updatedAt), yesterday)
+      ),
+    },
+    {
+      label: "Older",
+      chats: chatList.filter((chat) => {
+        const updatedAt = new Date(chat.updatedAt);
+        return (
+          !chat.pinned &&
+          !isSameDay(updatedAt, now) &&
+          !isSameDay(updatedAt, yesterday)
+        );
+      }),
+    },
+  ].filter((group) => group.chats.length > 0);
+}
+
+const chatGroups = getChatGroups(filteredChats);
   const displayName = profileName.trim() || userEmail || "Signed in";
 
   function createOptimisticUserMessage(content: string): ChatMessage {
@@ -690,7 +740,11 @@ export function ChatApp({
   }, [messages, isSending]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-neutral-950 text-white">
+   <div
+  className={`flex h-screen overflow-hidden text-white ${
+    theme === "graphite" ? "bg-zinc-900" : "bg-neutral-950"
+  }`}
+>
       {toasts.length > 0 ? (
         <div className="fixed right-4 top-4 z-[70] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2">
           {toasts.map((toast) => (
@@ -773,8 +827,14 @@ export function ChatApp({
             </div>
           ) : null}
 
-          <div className="space-y-1">
-            {filteredChats.map((chat) => (
+          <div className="space-y-5">
+  {chatGroups.map((group) => (
+    <div key={group.label}>
+      <p className="mb-2 px-2 text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-600">
+        {group.label}
+      </p>
+      <div className="space-y-1">
+        {group.chats.map((chat) => (
               <div
                 key={chat.id}
                 className={`group flex items-center gap-2 rounded-lg px-2 py-2 transition ${
@@ -846,8 +906,11 @@ export function ChatApp({
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
-            ))}
-          </div>
+                  ))}
+      </div>
+    </div>
+  ))}
+</div>
         </div>
 
         <div className="relative border-t border-white/10 p-4">
@@ -869,13 +932,16 @@ export function ChatApp({
                 Your profile
               </button>
               <button
-                type="button"
-                className="flex h-10 w-full items-center gap-2 px-3 text-left text-sm text-neutral-500"
-                title="Settings will be added later"
-              >
-                <Settings className="h-4 w-4" />
-                Settings
-              </button>
+  type="button"
+  onClick={() => {
+    setIsSettingsOpen(true);
+    setIsAccountMenuOpen(false);
+  }}
+  className="flex h-10 w-full items-center gap-2 px-3 text-left text-sm text-neutral-200 transition hover:bg-white/10"
+>
+  <Settings className="h-4 w-4" />
+  Settings
+</button>
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/signin" })}
@@ -1056,6 +1122,134 @@ export function ChatApp({
         </>
       ) : null}
 
+      {isSettingsOpen ? (
+  <>
+    <button
+      type="button"
+      aria-label="Close settings panel"
+      onClick={() => setIsSettingsOpen(false)}
+      className="fixed inset-0 z-40 bg-black/60"
+    />
+    <section className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/10 bg-neutral-950 shadow-2xl">
+      <div className="flex h-16 items-center justify-between border-b border-white/10 px-5">
+        <div>
+          <p className="text-sm font-semibold">Settings</p>
+          <p className="text-xs text-neutral-500">
+            Customize your ChatForge workspace
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsSettingsOpen(false)}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-neutral-300 transition hover:bg-white/10 hover:text-white"
+          aria-label="Close settings"
+          title="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="flex-1 space-y-5 overflow-y-auto p-5">
+        <div className="rounded-lg border border-white/10 bg-neutral-900 p-4">
+          <p className="text-sm font-medium text-white">Theme</p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setTheme("dark")}
+              className={`h-10 rounded-lg border text-sm transition ${
+                theme === "dark"
+                  ? "border-white bg-white text-neutral-950"
+                  : "border-white/10 text-neutral-300 hover:bg-white/10"
+              }`}
+            >
+              Dark
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme("graphite")}
+              className={`h-10 rounded-lg border text-sm transition ${
+                theme === "graphite"
+                  ? "border-white bg-white text-neutral-950"
+                  : "border-white/10 text-neutral-300 hover:bg-white/10"
+              }`}
+            >
+              Graphite
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-white/10 bg-neutral-900 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-white">Compact mode</p>
+              <p className="mt-1 text-xs leading-5 text-neutral-500">
+                Tightens message spacing for long research sessions.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsCompactMode((current) => !current)}
+              className={`h-6 w-11 rounded-full p-1 transition ${
+                isCompactMode ? "bg-white" : "bg-neutral-700"
+              }`}
+              aria-label="Toggle compact mode"
+            >
+              <span
+                className={`block h-4 w-4 rounded-full transition ${
+                  isCompactMode
+                    ? "translate-x-5 bg-neutral-950"
+                    : "bg-neutral-300"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-white/10 bg-neutral-900 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-white">
+                Typewriter animation
+              </p>
+              <p className="mt-1 text-xs leading-5 text-neutral-500">
+                Animate new assistant responses as they appear.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setIsTypewriterEnabled((current) => !current)
+              }
+              className={`h-6 w-11 rounded-full p-1 transition ${
+                isTypewriterEnabled ? "bg-white" : "bg-neutral-700"
+              }`}
+              aria-label="Toggle typewriter animation"
+            >
+              <span
+                className={`block h-4 w-4 rounded-full transition ${
+                  isTypewriterEnabled
+                    ? "translate-x-5 bg-neutral-950"
+                    : "bg-neutral-300"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-white/10 bg-neutral-900 p-4">
+          <p className="text-sm font-medium text-white">Default model</p>
+          <div className="mt-3">
+            <ModelSelector
+              selectedModel={selectedModel}
+              onChange={setSelectedModel}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  </>
+) : null}
+
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 items-center justify-between border-b border-white/10 px-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -1160,9 +1354,12 @@ export function ChatApp({
                           onClick={() => createChat(suggestion.prompt)}
                           className="rounded-lg border border-white/10 bg-neutral-900 px-4 py-3 text-left transition hover:border-white/20 hover:bg-neutral-800"
                         >
-                          <span className="block text-sm font-medium text-white">
-                            {suggestion.title}
-                          </span>
+                         <span className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white text-sm font-semibold text-neutral-950">
+  {suggestion.title.slice(0, 1)}
+</span>
+<span className="block text-sm font-medium text-white">
+  {suggestion.title}
+</span>
                           <span className="mt-1 block line-clamp-2 text-xs leading-5 text-neutral-500">
                             {suggestion.prompt}
                           </span>
@@ -1201,12 +1398,12 @@ export function ChatApp({
               ) : null}
 
               {messages.length > 0 ? (
-                <div className="space-y-4">
+                 <div className={isCompactMode ? "space-y-2" : "space-y-4"}>
                   {messages.map((message) => (
                     <MessageBubble
                       key={message.id}
                       message={message}
-                      animate={message.id === animatedMessageId}
+                      animate={isTypewriterEnabled && message.id === animatedMessageId}
                       onEditUserMessage={startEditingMessage}
                       onRegenerateAssistantMessage={regenerateAssistantResponse}
                     />
