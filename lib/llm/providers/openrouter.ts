@@ -5,19 +5,59 @@ import type {
   GenerateChatResponseResult,
 } from "@/lib/llm/types";
 
-const FREE_CHAT_MODELS = [
+const GENERAL_FREE_MODELS = [
+  "openai/gpt-oss-120b:free",
+  "deepseek/deepseek-r1:free",
+  "openai/gpt-oss-20b:free",
+  "deepseek/deepseek-chat-v3:free",
+  "deepseek/deepseek-r1-0528:free",
   "nvidia/nemotron-3-ultra-550b-a55b:free",
   "google/gemma-4-31b-it:free",
   "meta-llama/llama-3.3-70b-instruct:free",
   "openrouter/free",
 ];
 
-function getOpenRouterModel(model: string) {
-  if (model.includes("/")) {
-    return model;
+const PROVIDER_MODEL_FALLBACKS = {
+  openai: [
+    "openai/gpt-oss-120b:free",
+    "openai/gpt-oss-20b:free",
+    ...GENERAL_FREE_MODELS,
+  ],
+  anthropic: [
+    "openai/gpt-oss-120b:free",
+    "deepseek/deepseek-r1:free",
+    "openai/gpt-oss-20b:free",
+    ...GENERAL_FREE_MODELS,
+  ],
+  deepseek: [
+    "deepseek/deepseek-r1:free",
+    "deepseek/deepseek-chat-v3:free",
+    "deepseek/deepseek-r1-0528:free",
+    ...GENERAL_FREE_MODELS,
+  ],
+} satisfies Record<GenerateChatResponseInput["provider"], string[]>;
+
+function uniqueModels(models: string[]) {
+  return Array.from(new Set(models));
+}
+
+function getOpenRouterModelsToTry(input: GenerateChatResponseInput) {
+  const requestedModel = input.model.includes("/") ? input.model : null;
+  const providerModels = PROVIDER_MODEL_FALLBACKS[input.provider];
+
+  return uniqueModels([
+    ...(requestedModel ? [requestedModel] : []),
+    ...providerModels,
+    ...GENERAL_FREE_MODELS,
+  ]);
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
   }
 
-  return FREE_CHAT_MODELS[0];
+  return "Unknown provider error.";
 }
 
 export async function generateOpenRouterResponse(
@@ -36,12 +76,8 @@ export async function generateOpenRouterResponse(
     },
   });
 
-  const preferredModel = getOpenRouterModel(input.model);
-  const modelsToTry = [
-    preferredModel,
-    ...FREE_CHAT_MODELS.filter((model) => model !== preferredModel),
-  ];
-
+  const modelsToTry = getOpenRouterModelsToTry(input);
+  const failedModels: string[] = [];
   let lastError: unknown;
 
   for (const model of modelsToTry) {
@@ -55,18 +91,25 @@ export async function generateOpenRouterResponse(
         })),
       });
 
+      const content = response.choices[0]?.message?.content;
+
+      if (!content) {
+        throw new Error(`Model ${model} returned an empty response.`);
+      }
+
       return {
-        content:
-          response.choices[0]?.message?.content ||
-          "I could not generate a response.",
+        content,
       };
     } catch (error) {
       lastError = error;
+      failedModels.push(`${model}: ${getErrorMessage(error)}`);
       console.warn(`OpenRouter model failed: ${model}`, error);
     }
   }
 
+  console.warn("All OpenRouter fallback models failed:", failedModels);
+
   throw lastError instanceof Error
     ? lastError
-    : new Error("All OpenRouter free models failed.");
+    : new Error("All OpenRouter fallback models failed.");
 }
