@@ -84,7 +84,7 @@ export async function generateOpenRouterResponse(
     try {
       const response = await client.chat.completions.create({
         model,
-        max_tokens: 700,
+        max_tokens: 3000,
         messages: input.messages.map((message) => ({
           role: message.role,
           content: message.content,

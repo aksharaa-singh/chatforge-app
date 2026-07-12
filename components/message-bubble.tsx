@@ -44,17 +44,97 @@ export function MessageBubble({
   return (
     <div className={`group flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
-        className={`relative max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm sm:max-w-[72%] ${
+        className={`relative rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
           isUser
-            ? "bg-white text-neutral-950"
-            : "border border-white/10 bg-neutral-900 text-neutral-100"
+            ? "max-w-[85%] bg-white text-neutral-950 sm:max-w-[72%]"
+            : "w-full max-w-full border border-white/10 bg-neutral-900 text-neutral-100"
         }`}
       >
         {isUser ? (
           <p className="whitespace-pre-wrap">{displayedContent}</p>
         ) : (
-          <div className="prose prose-invert max-w-none text-sm leading-6 prose-p:my-2 prose-pre:my-3 prose-pre:overflow-x-auto prose-pre:rounded-lg prose-pre:border prose-pre:border-white/10 prose-pre:bg-neutral-950 prose-pre:p-3 prose-code:rounded prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:text-neutral-100 prose-pre:prose-code:bg-transparent prose-pre:prose-code:p-0">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <div className="max-w-full overflow-x-auto">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                table({ children }) {
+                  return (
+                    <div className="my-5 w-full overflow-x-auto rounded-xl border border-white/10">
+                      <table className="w-full min-w-[820px] border-collapse text-left text-sm">
+                        {children}
+                      </table>
+                    </div>
+                  );
+                },
+                thead({ children }) {
+                  return <thead className="bg-neutral-800">{children}</thead>;
+                },
+                tbody({ children }) {
+                  return (
+                    <tbody className="divide-y divide-white/10">
+                      {children}
+                    </tbody>
+                  );
+                },
+                tr({ children }) {
+                  return (
+                    <tr className="transition odd:bg-white/[0.025] hover:bg-white/[0.04]">
+                      {children}
+                    </tr>
+                  );
+                },
+                th({ children }) {
+                  return (
+                    <th className="border-r border-white/10 px-4 py-3 align-top text-xs font-semibold uppercase tracking-[0.08em] text-white last:border-r-0">
+                      {children}
+                    </th>
+                  );
+                },
+                td({ children }) {
+                  return (
+                    <td className="border-r border-white/10 px-4 py-3 align-top text-neutral-200 last:border-r-0">
+                      <div className="min-w-[140px] whitespace-normal break-words leading-6">
+                        {children}
+                      </div>
+                    </td>
+                  );
+                },
+                p({ children }) {
+                  return <p className="my-3 leading-7">{children}</p>;
+                },
+                ul({ children }) {
+                  return (
+                    <ul className="my-3 list-disc space-y-1 pl-5">
+                      {children}
+                    </ul>
+                  );
+                },
+                ol({ children }) {
+                  return (
+                    <ol className="my-3 list-decimal space-y-1 pl-5">
+                      {children}
+                    </ol>
+                  );
+                },
+                li({ children }) {
+                  return <li className="leading-7">{children}</li>;
+                },
+                code({ children }) {
+                  return (
+                    <code className="rounded bg-white/10 px-1 py-0.5 text-neutral-100">
+                      {children}
+                    </code>
+                  );
+                },
+                pre({ children }) {
+                  return (
+                    <pre className="my-4 overflow-x-auto rounded-lg border border-white/10 bg-neutral-950 p-4">
+                      {children}
+                    </pre>
+                  );
+                },
+              }}
+            >
               {displayedContent}
             </ReactMarkdown>
           </div>
@@ -73,7 +153,7 @@ export function MessageBubble({
             </button>
           </div>
         ) : (
-          <div className="mt-3 flex items-center justify-between gap-3">
+          <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
             {providerLabel ? (
               <p className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">
                 {providerLabel}

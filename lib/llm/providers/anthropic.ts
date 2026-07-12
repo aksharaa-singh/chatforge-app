@@ -31,7 +31,7 @@ export async function generateAnthropicResponse(
 
   const response = await client.messages.create({
     model: getAnthropicModel(input.model),
-    max_tokens: 1024,
+    max_tokens: 3000,
     messages: input.messages
       .filter((message) => message.role !== "system")
       .map((message) => ({

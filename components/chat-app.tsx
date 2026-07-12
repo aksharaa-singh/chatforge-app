@@ -55,6 +55,27 @@ type Toast = {
   message: string;
   type: "success" | "error" | "info";
 };
+type StreamEvent =
+  | {
+      type: "userMessage";
+      userMessage: ChatMessage;
+    }
+  | {
+      type: "chunk";
+      content: string;
+    }
+  | {
+      type: "assistantMessage";
+      assistantMessage: ChatMessage;
+    }
+  | {
+      type: "error";
+      error: string;
+    }
+  | {
+    type: "limit";
+    message: string;
+  };
 
 function sortChats(chats: ChatSummary[]) {
   return [...chats].sort((firstChat, secondChat) => {
@@ -440,92 +461,175 @@ const chatGroups = getChatGroups(filteredChats);
     }
   }
 
-  async function sendMessageToChat(chatId: string, content: string) {
-    setError("");
-    setIsSending(true);
-    setAnimatedMessageId("");
+async function sendMessageToChat(chatId: string, content: string) {
+  setError("");
+  setIsSending(true);
+  setAnimatedMessageId("");
 
-    const optimisticUserMessage = createOptimisticUserMessage(content);
-    setMessages((current) => [...current, optimisticUserMessage]);
+  const optimisticUserMessage = createOptimisticUserMessage(content);
+  const streamingAssistantId = `streaming-${crypto.randomUUID()}`;
 
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
+  const optimisticAssistantMessage: ChatMessage = {
+    id: streamingAssistantId,
+    role: "assistant",
+    content: "",
+    provider: selectedModel.provider,
+    model: selectedModel.model,
+    createdAt: new Date().toISOString(),
+  };
 
-    try {
-      const response = await fetch(`/api/chats/${chatId}/messages/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        signal: abortController.signal,
-        body: JSON.stringify({
-          content,
-          provider: selectedModel.provider,
-          model: selectedModel.model,
-        }),
-      });
+  setMessages((current) => [
+    ...current,
+    optimisticUserMessage,
+    optimisticAssistantMessage,
+  ]);
 
-      const data = await response.json();
+  const abortController = new AbortController();
+  abortControllerRef.current = abortController;
 
-      if (!response.ok) {
-        setError(data.error || "Could not send your message.");
-        setMessages((current) =>
-          current.filter((message) => message.id !== optimisticUserMessage.id)
-        );
-        setInput(content);
-        return;
-      }
+  try {
+    const response = await fetch(`/api/chats/${chatId}/messages/stream`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      signal: abortController.signal,
+      body: JSON.stringify({
+        content,
+        provider: selectedModel.provider,
+        model: selectedModel.model,
+      }),
+    });
 
-      setMessages((current) => {
-        const replacedMessages = current.map((message) =>
-          message.id === optimisticUserMessage.id ? data.userMessage : message
-        );
-        const hasOptimisticMessage = current.some(
-          (message) => message.id === optimisticUserMessage.id
-        );
-
-        return hasOptimisticMessage
-          ? [...replacedMessages, data.assistantMessage]
-          : [...current, data.userMessage, data.assistantMessage];
-      });
-      setAnimatedMessageId(data.assistantMessage.id);
-
-      setChats((current) =>
-        sortChats(
-          current.map((chat) =>
-            chat.id === chatId
-              ? {
-                  ...chat,
-                  title:
-                    chat.title === "New chat"
-                      ? content.slice(0, 60)
-                      : chat.title,
-                  updatedAt: new Date().toISOString(),
-                }
-              : chat
-          )
+    if (!response.ok || !response.body) {
+      const data = await response.json().catch(() => null);
+      setError(data?.error || "Could not stream your message.");
+      setMessages((current) =>
+        current.filter(
+          (message) =>
+            message.id !== optimisticUserMessage.id &&
+            message.id !== streamingAssistantId
         )
       );
-    } catch (requestError) {
-      if (
-        requestError instanceof DOMException &&
-        requestError.name === "AbortError"
-      ) {
-        setError("ChatForge response stopped.");
-        setEditingMessage(null);
-        return;
+      setInput(content);
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        break;
       }
 
-      setError("Network error while sending your message.");
-      setMessages((current) =>
-        current.filter((message) => message.id !== optimisticUserMessage.id)
-      );
-      setInput(content);
-    } finally {
-      abortControllerRef.current = null;
-      setIsSending(false);
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (!line.trim()) {
+          continue;
+        }
+
+        const event = JSON.parse(line) as StreamEvent;
+
+        if (event.type === "userMessage") {
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === optimisticUserMessage.id
+                ? event.userMessage
+                : message
+            )
+          );
+        }
+
+        if (event.type === "chunk") {
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === streamingAssistantId
+                ? {
+                    ...message,
+                    content: message.content + event.content,
+                  }
+                : message
+            )
+          );
+        }
+
+        if (event.type === "limit") {
+  showToast(event.message, "info");
+}
+
+        if (event.type === "assistantMessage") {
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === streamingAssistantId
+                ? event.assistantMessage
+                : message
+            )
+          );
+          
+
+          setAnimatedMessageId("");
+
+          setChats((current) =>
+            sortChats(
+              current.map((chat) =>
+                chat.id === chatId
+                  ? {
+                      ...chat,
+                      title:
+                        chat.title === "New chat"
+                          ? content.slice(0, 60)
+                          : chat.title,
+                      updatedAt: new Date().toISOString(),
+                    }
+                  : chat
+              )
+            )
+          );
+        }
+
+        if (event.type === "error") {
+          setError(event.error || "The selected model provider could not respond.");
+          setMessages((current) =>
+            current.filter(
+              (message) =>
+                message.id !== optimisticUserMessage.id &&
+                message.id !== streamingAssistantId
+            )
+          );
+          setInput(content);
+        }
+      }
     }
+  } catch (requestError) {
+    if (
+      requestError instanceof DOMException &&
+      requestError.name === "AbortError"
+    ) {
+      setError("ChatForge response stopped.");
+      return;
+    }
+
+    setError("Network error while streaming your message.");
+    setMessages((current) =>
+      current.filter(
+        (message) =>
+          message.id !== optimisticUserMessage.id &&
+          message.id !== streamingAssistantId
+      )
+    );
+    setInput(content);
+  } finally {
+    abortControllerRef.current = null;
+    setIsSending(false);
   }
+}
 
   function startEditingMessage(message: ChatMessage) {
     setEditingMessage(message);
@@ -1403,7 +1507,11 @@ const chatGroups = getChatGroups(filteredChats);
                     <MessageBubble
                       key={message.id}
                       message={message}
-                      animate={isTypewriterEnabled && message.id === animatedMessageId}
+                      animate={
+  isTypewriterEnabled &&
+  message.id === animatedMessageId &&
+  !message.id.startsWith("streaming-")
+}
                       onEditUserMessage={startEditingMessage}
                       onRegenerateAssistantMessage={regenerateAssistantResponse}
                     />
