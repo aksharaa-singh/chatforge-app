@@ -774,6 +774,38 @@ async function sendMessageToChat(chatId: string, content: string) {
     setInput("");
     await editAndResendMessage(previousUserMessage.content, previousUserMessage);
   }
+  async function continueAssistantResponse() {
+  if (!activeChatId || isSending) {
+    return;
+  }
+
+  await sendMessageToChat(
+    activeChatId,
+    "Continue from your previous response. Do not repeat what you already said."
+  );
+}
+
+async function shortenAssistantResponse() {
+  if (!activeChatId || isSending) {
+    return;
+  }
+
+  await sendMessageToChat(
+    activeChatId,
+    "Rewrite your previous response in a shorter, clearer version."
+  );
+}
+
+async function expandAssistantResponse() {
+  if (!activeChatId || isSending) {
+    return;
+  }
+
+  await sendMessageToChat(
+    activeChatId,
+    "Expand your previous response with more useful details, examples, and structure."
+  );
+}
 
   async function sendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1505,16 +1537,20 @@ async function sendMessageToChat(chatId: string, content: string) {
                  <div className={isCompactMode ? "space-y-2" : "space-y-4"}>
                   {messages.map((message) => (
                     <MessageBubble
-                      key={message.id}
-                      message={message}
-                      animate={
-  isTypewriterEnabled &&
-  message.id === animatedMessageId &&
-  !message.id.startsWith("streaming-")
-}
-                      onEditUserMessage={startEditingMessage}
-                      onRegenerateAssistantMessage={regenerateAssistantResponse}
-                    />
+  key={message.id}
+  message={message}
+  animate={
+    isTypewriterEnabled &&
+    message.id === animatedMessageId &&
+    !message.id.startsWith("streaming-")
+  }
+  onEditUserMessage={startEditingMessage}
+  onRegenerateAssistantMessage={regenerateAssistantResponse}
+  onContinueAssistantMessage={continueAssistantResponse}
+  onShortenAssistantMessage={shortenAssistantResponse}
+  onExpandAssistantMessage={expandAssistantResponse}
+  onCopied={() => showToast("Copied.", "success")}
+/>
                   ))}
 
                   {isSending ? (

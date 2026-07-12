@@ -1,6 +1,14 @@
 "use client";
 
-import { Check, Copy, Edit3, RefreshCw } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Edit3,
+  FileText,
+  ListCollapse,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -19,11 +27,19 @@ export function MessageBubble({
   animate,
   onEditUserMessage,
   onRegenerateAssistantMessage,
+  onContinueAssistantMessage,
+  onShortenAssistantMessage,
+  onExpandAssistantMessage,
+  onCopied,
 }: {
   message: ChatMessage;
   animate: boolean;
   onEditUserMessage?: (message: ChatMessage) => void;
   onRegenerateAssistantMessage?: (message: ChatMessage) => void;
+  onContinueAssistantMessage?: (message: ChatMessage) => void;
+  onShortenAssistantMessage?: (message: ChatMessage) => void;
+  onExpandAssistantMessage?: (message: ChatMessage) => void;
+  onCopied?: () => void;
 }) {
   const [isCopied, setIsCopied] = useState(false);
   const isUser = message.role === "user";
@@ -35,6 +51,7 @@ export function MessageBubble({
   async function copyMessage() {
     await navigator.clipboard.writeText(message.content);
     setIsCopied(true);
+    onCopied?.();
 
     window.setTimeout(() => {
       setIsCopied(false);
@@ -44,10 +61,10 @@ export function MessageBubble({
   return (
     <div className={`group flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
-        className={`relative rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
+        className={`relative px-4 py-3 text-sm leading-6 ${
           isUser
-            ? "max-w-[85%] bg-white text-neutral-950 sm:max-w-[72%]"
-            : "w-full max-w-full border border-white/10 bg-neutral-900 text-neutral-100"
+            ? "max-w-[85%] rounded-2xl bg-white text-neutral-950 shadow-sm sm:max-w-[72%]"
+            : "w-full max-w-full text-neutral-100"
         }`}
       >
         {isUser ? (
@@ -153,40 +170,63 @@ export function MessageBubble({
             </button>
           </div>
         ) : (
-          <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
             {providerLabel ? (
-              <p className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">
+              <p className="mr-auto text-[11px] uppercase tracking-[0.16em] text-neutral-500">
                 {providerLabel}
               </p>
             ) : (
-              <span />
+              <span className="mr-auto" />
             )}
 
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => onRegenerateAssistantMessage?.(message)}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-neutral-500 opacity-100 transition hover:bg-white/10 hover:text-white sm:opacity-0 sm:group-hover:opacity-100"
-                aria-label="Regenerate assistant response"
-                title="Regenerate"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </button>
+            <button
+              type="button"
+              onClick={copyMessage}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 text-xs font-medium text-neutral-400 transition hover:bg-white/10 hover:text-white"
+            >
+              {isCopied ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
+              Copy
+            </button>
 
-              <button
-                type="button"
-                onClick={copyMessage}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-neutral-500 opacity-100 transition hover:bg-white/10 hover:text-white sm:opacity-0 sm:group-hover:opacity-100"
-                aria-label="Copy assistant message"
-                title="Copy"
-              >
-                {isCopied ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => onRegenerateAssistantMessage?.(message)}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 text-xs font-medium text-neutral-400 transition hover:bg-white/10 hover:text-white"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Regenerate
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onContinueAssistantMessage?.(message)}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 text-xs font-medium text-neutral-400 transition hover:bg-white/10 hover:text-white"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Continue
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onShortenAssistantMessage?.(message)}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 text-xs font-medium text-neutral-400 transition hover:bg-white/10 hover:text-white"
+            >
+              <ListCollapse className="h-3.5 w-3.5" />
+              Shorter
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onExpandAssistantMessage?.(message)}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 text-xs font-medium text-neutral-400 transition hover:bg-white/10 hover:text-white"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              More detailed
+            </button>
           </div>
         )}
       </div>

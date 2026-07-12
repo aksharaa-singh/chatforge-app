@@ -139,7 +139,7 @@ export async function POST(request: Request, context: RouteContext) {
 
             const completion = await client.chat.completions.create({
               model: modelToTry,
-              max_tokens: 3000,
+              max_tokens: 4000,
               stream: true,
               messages: recentMessages.reverse().map((message) => ({
                 role: message.role,
