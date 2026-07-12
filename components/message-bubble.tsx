@@ -25,6 +25,7 @@ const PROVIDER_LABELS = {
 export function MessageBubble({
   message,
   animate,
+  isStreaming,
   onEditUserMessage,
   onRegenerateAssistantMessage,
   onContinueAssistantMessage,
@@ -34,6 +35,7 @@ export function MessageBubble({
 }: {
   message: ChatMessage;
   animate: boolean;
+  isStreaming?: boolean;
   onEditUserMessage?: (message: ChatMessage) => void;
   onRegenerateAssistantMessage?: (message: ChatMessage) => void;
   onContinueAssistantMessage?: (message: ChatMessage) => void;
@@ -77,7 +79,7 @@ export function MessageBubble({
                 table({ children }) {
                   return (
                     <div className="my-5 w-full overflow-x-auto rounded-xl border border-white/10">
-                      <table className="w-full min-w-[820px] border-collapse text-left text-sm">
+                      <table className="w-max min-w-full table-auto border-collapse text-left text-sm">
                         {children}
                       </table>
                     </div>
@@ -109,8 +111,8 @@ export function MessageBubble({
                 },
                 td({ children }) {
                   return (
-                    <td className="border-r border-white/10 px-4 py-3 align-top text-neutral-200 last:border-r-0">
-                      <div className="min-w-[140px] whitespace-normal break-words leading-6">
+                    <td className="whitespace-nowrap border-r border-white/10 px-4 py-3 align-top text-neutral-200 last:border-r-0">
+                      <div className="max-w-[360px] whitespace-normal break-words leading-6">
                         {children}
                       </div>
                     </td>
@@ -169,7 +171,7 @@ export function MessageBubble({
               <Edit3 className="h-4 w-4" />
             </button>
           </div>
-        ) : (
+        ) : !isStreaming ? (
           <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
             {providerLabel ? (
               <p className="mr-auto text-[11px] uppercase tracking-[0.16em] text-neutral-500">
@@ -228,7 +230,7 @@ export function MessageBubble({
               More detailed
             </button>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

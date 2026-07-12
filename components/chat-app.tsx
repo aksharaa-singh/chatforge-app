@@ -123,6 +123,10 @@ const [theme, setTheme] = useState<"dark" | "graphite">("dark");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileName, setProfileName] = useState(userName || "");
   const [profileDraftName, setProfileDraftName] = useState(userName || "");
+  const [profileCreatedAt, setProfileCreatedAt] = useState("");
+const [isEmailVerified, setIsEmailVerified] = useState(false);
+const [hasPassword, setHasPassword] = useState(false);
+const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -137,6 +141,53 @@ const [theme, setTheme] = useState<"dark" | "graphite">("dark");
   const activeChat = chats.find((chat) => chat.id === activeChatId);
   function isSameDay(firstDate: Date, secondDate: Date) {
   return firstDate.toDateString() === secondDate.toDateString();
+}
+
+function getInitials() {
+  const source = profileName || userEmail || "ChatForge User";
+  const parts = source.trim().split(/\s+/);
+
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  return source.slice(0, 2).toUpperCase();
+}
+
+function formatProfileDate(value: string) {
+  if (!value) {
+    return "Unavailable";
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+  }).format(new Date(value));
+}
+
+async function loadProfile() {
+  setIsLoadingProfile(true);
+  setProfileError("");
+  setProfileMessage("");
+
+  try {
+    const response = await fetch("/api/account/profile");
+    const data = await response.json();
+
+    if (!response.ok) {
+      setProfileError(data.error || "Could not load your profile.");
+      return;
+    }
+
+    setProfileName(data.user.name || "");
+    setProfileDraftName(data.user.name || "");
+    setProfileCreatedAt(data.user.createdAt || "");
+    setIsEmailVerified(Boolean(data.user.emailVerified));
+    setHasPassword(Boolean(data.user.hasPassword));
+  } catch {
+    setProfileError("Network error while loading your profile.");
+  } finally {
+    setIsLoadingProfile(false);
+  }
 }
 
 function getChatGroups(chatList: ChatSummary[]) {
@@ -1055,13 +1106,14 @@ async function expandAssistantResponse() {
               <button
                 type="button"
                 onClick={() => {
-                  setIsProfileOpen(true);
-                  setIsEditingProfile(false);
-                  setProfileDraftName(profileName);
-                  setIsAccountMenuOpen(false);
-                  setProfileMessage("");
-                  setProfileError("");
-                }}
+  setIsProfileOpen(true);
+  setIsEditingProfile(false);
+  setProfileDraftName(profileName);
+  setIsAccountMenuOpen(false);
+  setProfileMessage("");
+  setProfileError("");
+  void loadProfile();
+}}
                 className="flex h-10 w-full items-center gap-2 px-3 text-left text-sm text-neutral-200 transition hover:bg-white/10"
               >
                 <User className="h-4 w-4" />
@@ -1146,9 +1198,15 @@ async function expandAssistantResponse() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-5">
-              <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white text-lg font-semibold text-neutral-950">
-                {displayName.slice(0, 1).toUpperCase()}
-              </div>
+              <div className="mb-6 flex items-center gap-4">
+  <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-lg font-semibold text-neutral-950">
+    {getInitials()}
+  </div>
+  <div>
+    <p className="text-sm font-medium text-white">{displayName}</p>
+    <p className="text-xs text-neutral-500">{userEmail || "ChatForge account"}</p>
+  </div>
+</div>
 
               <div className="space-y-4">
                 {isEditingProfile ? (
@@ -1200,6 +1258,30 @@ async function expandAssistantResponse() {
                   </div>
                 )}
 
+                <div className="grid gap-3 sm:grid-cols-2">
+  <div className="rounded-lg border border-white/10 bg-neutral-900 px-4 py-3">
+    <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">
+      Joined
+    </p>
+    <p className="mt-1 text-sm text-white">
+      {formatProfileDate(profileCreatedAt)}
+    </p>
+  </div>
+
+  <div className="rounded-lg border border-white/10 bg-neutral-900 px-4 py-3">
+    <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">
+      Email status
+    </p>
+    <p
+      className={`mt-1 text-sm ${
+        isEmailVerified ? "text-emerald-300" : "text-amber-300"
+      }`}
+    >
+      {isEmailVerified ? "Verified" : "Not verified"}
+    </p>
+  </div>
+</div>
+
                 {profileError ? (
                   <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
                     {profileError}
@@ -1239,24 +1321,41 @@ async function expandAssistantResponse() {
                   </button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditingProfile(true);
-                    setProfileDraftName(profileName);
-                    setProfileMessage("");
-                    setProfileError("");
-                  }}
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-white text-sm font-medium text-neutral-950 transition hover:bg-neutral-200"
-                >
-                  <Edit3 className="h-4 w-4" />
-                  Edit profile
-                </button>
+                <div className="space-y-2">
+  <button
+    type="button"
+    onClick={() => {
+      setIsEditingProfile(true);
+      setProfileDraftName(profileName);
+      setProfileMessage("");
+      setProfileError("");
+    }}
+    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-white text-sm font-medium text-neutral-950 transition hover:bg-neutral-200"
+  >
+    <Edit3 className="h-4 w-4" />
+    Edit profile
+  </button>
+
+  {hasPassword ? (
+    <a
+      href="/forgot-password"
+      className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-white/10 text-sm font-medium text-neutral-200 transition hover:bg-white/10"
+    >
+      Change password
+    </a>
+  ) : null}
+</div>
               )}
             </div>
           </section>
         </>
       ) : null}
+
+{isLoadingProfile ? (
+  <div className="mb-4 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-neutral-400">
+    Loading profile...
+  </div>
+) : null}
 
       {isSettingsOpen ? (
   <>
@@ -1544,6 +1643,7 @@ async function expandAssistantResponse() {
     message.id === animatedMessageId &&
     !message.id.startsWith("streaming-")
   }
+  isStreaming={message.id.startsWith("streaming-")}
   onEditUserMessage={startEditingMessage}
   onRegenerateAssistantMessage={regenerateAssistantResponse}
   onContinueAssistantMessage={continueAssistantResponse}
