@@ -90,6 +90,17 @@ function sortChats(chats: ChatSummary[]) {
   });
 }
 
+function ThinkingDots() {
+  return (
+    <div className="flex justify-start">
+      <div className="inline-flex items-center gap-1 rounded-full px-1 py-2 text-neutral-400">
+        <span className="thinking-dot h-1.5 w-1.5 rounded-full bg-neutral-400" />
+        <span className="thinking-dot h-1.5 w-1.5 rounded-full bg-neutral-400" />
+        <span className="thinking-dot h-1.5 w-1.5 rounded-full bg-neutral-400" />
+      </div>
+    </div>
+  );
+}
 export function ChatApp({
   userEmail,
   userName,
@@ -937,7 +948,7 @@ async function expandAssistantResponse() {
           {toasts.map((toast) => (
             <div
               key={toast.id}
-              className={`rounded-lg border px-4 py-3 text-sm shadow-2xl ${
+              className={`toast-slide-in rounded-lg border px-4 py-3 text-sm shadow-2xl ${
                 toast.type === "success"
                   ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
                   : toast.type === "error"
@@ -956,12 +967,12 @@ async function expandAssistantResponse() {
           type="button"
           aria-label="Close sidebar"
           onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/60 transition-opacity duration-300 lg:hidden"
         />
       ) : null}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-80 flex-col border-r border-white/10 bg-neutral-900 transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-80 flex-col border-r border-white/10 bg-neutral-900 transition-transform duration-300 ease-out lg:static lg:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -1622,12 +1633,7 @@ async function expandAssistantResponse() {
                       selected model.
                     </p>
 
-                    {isSending ? (
-                      <div className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        ChatForge is thinking...
-                      </div>
-                    ) : null}
+                    {isSending ? <ThinkingDots /> : null}
                   </div>
                 </div>
               ) : null}
@@ -1657,7 +1663,7 @@ async function expandAssistantResponse() {
                     <div className="flex justify-start">
                       <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        ChatForge is thinking...
+                        <ThinkingDots />
                       </div>
                     </div>
                   ) : null}
@@ -1734,7 +1740,7 @@ async function expandAssistantResponse() {
                       <button
                         type="submit"
                         disabled={!activeChatId || !input.trim()}
-                        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-neutral-950 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-neutral-950 transition hover:scale-105 hover:bg-neutral-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                         aria-label={
                           editingMessage ? "Update and resend" : "Send message"
                         }
