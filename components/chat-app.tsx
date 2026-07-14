@@ -126,7 +126,33 @@ export function ChatApp({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 const [isCompactMode, setIsCompactMode] = useState(false);
 const [isTypewriterEnabled, setIsTypewriterEnabled] = useState(true);
-const [theme, setTheme] = useState<"dark" | "graphite">("dark");
+type ThemeName = "dark" | "graphite" | "light" | "midnight";
+
+function getInitialTheme(): ThemeName {
+  if (typeof window === "undefined") {
+    return "dark";
+  }
+
+  const savedTheme = localStorage.getItem("chatforge-theme");
+
+  if (
+    savedTheme === "dark" ||
+    savedTheme === "graphite" ||
+    savedTheme === "light" ||
+    savedTheme === "midnight"
+  ) {
+    return savedTheme;
+  }
+
+  return "dark";
+}
+
+const [theme, setThemeState] = useState<ThemeName>(getInitialTheme);
+
+function setTheme(nextTheme: ThemeName) {
+  setThemeState(nextTheme);
+  localStorage.setItem("chatforge-theme", nextTheme);
+}
   const [isLoadingChats, setIsLoadingChats] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
@@ -240,6 +266,7 @@ function getChatGroups(chatList: ChatSummary[]) {
 
 const chatGroups = getChatGroups(filteredChats);
   const displayName = profileName.trim() || userEmail || "Signed in";
+  const themeClasses = getThemeClasses(theme);
 
   function createOptimisticUserMessage(content: string): ChatMessage {
     return {
@@ -863,6 +890,183 @@ async function shortenAssistantResponse() {
   );
 }
 
+function getThemeClasses(themeName: ThemeName) {
+  if (themeName === "light") {
+    return {
+  app: "bg-neutral-200 text-neutral-950",
+  sidebar: "border-neutral-300 bg-neutral-100",
+  panel: "border-neutral-300 bg-neutral-100",
+  surface: "bg-white",
+  surfaceMuted: "bg-neutral-200",
+  border: "border-neutral-300",
+  text: "text-neutral-950",
+  textSoft: "text-neutral-700",
+  muted: "text-neutral-600",
+  selectedChat: "bg-neutral-300 text-neutral-950",
+  selectedChatHover: "hover:bg-neutral-400/60",
+  userBubble: "bg-neutral-300 text-neutral-950",
+  primaryButton: "bg-neutral-900 text-white hover:bg-neutral-700",
+  subtleButton:
+    "border-neutral-300 text-neutral-700 hover:bg-neutral-200 hover:text-neutral-950",
+  assistantAction:
+    "border-neutral-300 bg-neutral-200 text-neutral-800 hover:border-neutral-500 hover:bg-neutral-300 hover:text-neutral-950",
+  input:
+    "border-neutral-300 bg-white text-neutral-950 placeholder:text-neutral-500 focus:border-neutral-500",
+  card: "border-neutral-300 bg-white text-neutral-950",
+  cardHover: "hover:border-neutral-400 hover:bg-neutral-100",
+  composer: "border-neutral-300 bg-white",
+  danger: "border-red-300 bg-red-50 text-red-700",
+  success: "border-emerald-300 bg-emerald-50 text-emerald-700",
+  assistantResponse: "text-neutral-950",
+  assistantTable:
+    "border-neutral-300 bg-white text-neutral-950 divide-neutral-300",
+    chatHover: "hover:bg-neutral-200 hover:text-neutral-950",
+    codeBlock: "border-neutral-300 bg-neutral-100 text-neutral-950",
+inlineCode: "bg-neutral-200 text-neutral-950",
+header: "border-neutral-300 bg-neutral-100",
+dropdown: "border-neutral-300 bg-white text-neutral-950",
+drawer: "border-neutral-300 bg-neutral-100 text-neutral-950",
+iconBox: "bg-neutral-900 text-white",
+secondaryText: "text-neutral-700",
+tinyText: "text-neutral-600",
+divider: "border-neutral-300",
+ghostHover: "hover:bg-neutral-200",
+toggleOn: "bg-neutral-900",
+toggleOff: "bg-neutral-300",
+toggleKnobOn: "bg-white",
+toggleKnobOff: "bg-neutral-600",
+};
+  }
+
+  if (themeName === "midnight") {
+    return {
+      assistantResponse: "text-slate-100",
+assistantTable:"border-sky-900/40 bg-slate-900 text-slate-100 divide-sky-900/40",
+      input: "border-sky-900/40 bg-slate-900 text-slate-50 placeholder:text-slate-500 focus:border-sky-700",
+card: "border-sky-900/40 bg-slate-900 text-slate-50",
+cardHover: "hover:border-sky-800 hover:bg-slate-800/70",
+composer: "border-sky-900/40 bg-slate-900",
+danger: "border-red-500/30 bg-red-500/10 text-red-200",
+success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
+      app: "bg-slate-950 text-slate-50",
+      sidebar: "border-sky-900/40 bg-slate-950",
+      panel: "border-sky-900/40 bg-slate-950",
+      surface: "bg-slate-900",
+      surfaceMuted: "bg-slate-900/70",
+      border: "border-sky-900/40",
+      text: "text-slate-50",
+      textSoft: "text-slate-300",
+      muted: "text-slate-400",
+      selectedChat: "bg-sky-900/40 text-sky-50",
+      selectedChatHover: "hover:bg-sky-900/60",
+      userBubble: "bg-sky-900/50 text-sky-50",
+      primaryButton: "bg-sky-200 text-slate-950 hover:bg-sky-100",
+      subtleButton:
+        "border-sky-900/40 text-slate-300 hover:bg-sky-900/30 hover:text-white",
+      assistantAction:
+        "border-sky-900/50 bg-sky-950/40 text-slate-300 hover:border-sky-700 hover:bg-sky-900/50 hover:text-white",
+        chatHover: "hover:bg-sky-900/30 hover:text-white",
+        codeBlock: "border-sky-900/40 bg-slate-900 text-slate-100",
+inlineCode: "bg-sky-900/40 text-slate-100",
+header: "border-sky-900/40 bg-slate-950",
+dropdown: "border-sky-900/40 bg-slate-950 text-slate-50",
+drawer: "border-sky-900/40 bg-slate-950 text-slate-50",
+iconBox: "bg-sky-200 text-slate-950",
+secondaryText: "text-slate-300",
+tinyText: "text-slate-400",
+divider: "border-sky-900/40",
+ghostHover: "hover:bg-sky-900/30",
+toggleOn: "bg-sky-200",
+toggleOff: "bg-slate-700",
+toggleKnobOn: "bg-slate-950",
+toggleKnobOff: "bg-slate-300",
+    };
+  }
+
+  if (themeName === "graphite") {
+    return {
+      assistantResponse: "text-neutral-100",
+assistantTable:
+  "border-white/10 bg-neutral-900 text-neutral-100 divide-white/10",
+      input: "border-white/10 bg-neutral-900 text-white placeholder:text-neutral-600 focus:border-white/30",
+card: "border-white/10 bg-neutral-900 text-white",
+cardHover: "hover:border-white/20 hover:bg-neutral-800",
+composer: "border-white/10 bg-neutral-900",
+danger: "border-red-500/30 bg-red-500/10 text-red-200",
+success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
+      app: "bg-zinc-900 text-white",
+      sidebar: "border-white/10 bg-neutral-900",
+      panel: "border-white/10 bg-neutral-950",
+      surface: "bg-neutral-900",
+      surfaceMuted: "bg-white/5",
+      border: "border-white/10",
+      text: "text-white",
+      textSoft: "text-neutral-300",
+      muted: "text-neutral-500",
+      selectedChat: "bg-zinc-700 text-white",
+      selectedChatHover: "hover:bg-zinc-600",
+      userBubble: "bg-zinc-700 text-white",
+      primaryButton: "bg-zinc-200 text-neutral-950 hover:bg-white",
+      subtleButton:
+        "border-white/10 text-neutral-300 hover:bg-white/10 hover:text-white",
+      assistantAction:
+        "border-white/10 bg-white/[0.03] text-neutral-300 hover:border-white/20 hover:bg-white/10 hover:text-white",
+    chatHover: "hover:bg-zinc-800 hover:text-white",
+    codeBlock: "border-white/10 bg-neutral-950 text-neutral-100",
+inlineCode: "bg-white/10 text-neutral-100",
+header: "border-white/10 bg-neutral-950",
+dropdown: "border-white/10 bg-neutral-950 text-white",
+drawer: "border-white/10 bg-neutral-950 text-white",
+iconBox: "bg-white text-neutral-950",
+secondaryText: "text-neutral-300",
+tinyText: "text-neutral-500",
+divider: "border-white/10",
+ghostHover: "hover:bg-white/10",
+toggleOn: "bg-white",
+toggleOff: "bg-neutral-700",
+toggleKnobOn: "bg-neutral-950",
+toggleKnobOff: "bg-neutral-300",
+      };
+  }
+
+  return {
+    assistantResponse: "text-neutral-100",
+assistantTable:
+  "border-white/10 bg-neutral-900 text-neutral-100 divide-white/10",
+    app: "bg-neutral-950 text-white",
+    sidebar: "border-white/10 bg-neutral-900",
+    panel: "border-white/10 bg-neutral-950",
+    surface: "bg-neutral-900",
+    surfaceMuted: "bg-white/5",
+    border: "border-white/10",
+    text: "text-white",
+    textSoft: "text-neutral-300",
+    muted: "text-neutral-500",
+    selectedChat: "bg-neutral-700 text-white",
+    selectedChatHover: "hover:bg-neutral-600",
+    userBubble: "bg-neutral-700 text-white",
+    primaryButton: "bg-neutral-200 text-neutral-950 hover:bg-white",
+    subtleButton:
+      "border-white/10 text-neutral-300 hover:bg-white/10 hover:text-white",
+    assistantAction:
+      "border-white/10 bg-white/[0.03] text-neutral-300 hover:border-white/20 hover:bg-white/10 hover:text-white",
+  chatHover: "hover:bg-neutral-800 hover:text-white",
+  codeBlock: "border-white/10 bg-neutral-950 text-neutral-100",
+inlineCode: "bg-white/10 text-neutral-100",
+header: "border-white/10 bg-neutral-950",
+dropdown: "border-white/10 bg-neutral-950 text-white",
+drawer: "border-white/10 bg-neutral-950 text-white",
+iconBox: "bg-white text-neutral-950",
+secondaryText: "text-neutral-300",
+tinyText: "text-neutral-500",
+divider: "border-white/10",
+ghostHover: "hover:bg-white/10",
+toggleOn: "bg-white",
+toggleOff: "bg-neutral-700",
+toggleKnobOn: "bg-neutral-950",
+toggleKnobOff: "bg-neutral-300",
+    };
+}
 async function expandAssistantResponse() {
   if (!activeChatId || isSending) {
     return;
@@ -945,11 +1149,7 @@ async function expandAssistantResponse() {
   }, [messages, isSending]);
 
   return (
-   <div
-  className={`flex h-screen overflow-hidden text-white ${
-    theme === "graphite" ? "bg-zinc-900" : "bg-neutral-950"
-  }`}
->
+   <div className={`flex h-screen overflow-hidden ${themeClasses.app}`}>
       {toasts.length > 0 ? (
         <div className="fixed right-4 top-4 z-[70] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2">
           {toasts.map((toast) => (
@@ -979,15 +1179,27 @@ async function expandAssistantResponse() {
       ) : null}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-80 flex-col border-r border-white/10 bg-neutral-900 transition-transform duration-300 ease-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-80 flex-col border-r ${themeClasses.sidebar} transition-transform duration-300 ease-out lg:static lg:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
-          <div>
-            <p className="text-sm font-semibold">ChatForge</p>
-            <p className="text-xs text-neutral-500">Private AI workspace</p>
-          </div>
+        <div className={`flex h-16 items-center justify-between border-b px-4 ${themeClasses.header}`}>
+          <button
+  type="button"
+  onClick={() => {
+    setActiveChatId("");
+    setMessages([]);
+    setNextCursor(null);
+    setAnimatedMessageId("");
+    setEditingMessage(null);
+    setIsSidebarOpen(false);
+  }}
+  className="text-left"
+  title="Go to welcome screen"
+>
+  <p className="text-sm font-semibold">ChatForge</p>
+  <p className={`text-xs ${themeClasses.muted}`}>Private AI workspace</p>
+</button>
 
           <button
             type="button"
@@ -1007,7 +1219,7 @@ async function expandAssistantResponse() {
             <input
               value={chatSearch}
               onChange={(event) => setChatSearch(event.target.value)}
-              className="h-10 w-full rounded-lg border border-white/10 bg-neutral-950 pl-9 pr-3 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-white/30"
+              className={`h-10 w-full rounded-lg border pl-9 pr-3 text-sm outline-none transition ${themeClasses.input}`}
               placeholder="Search chats"
             />
           </label>
@@ -1044,8 +1256,8 @@ async function expandAssistantResponse() {
                 key={chat.id}
                 className={`group flex items-center gap-2 rounded-lg px-2 py-2 transition ${
                   chat.id === activeChatId
-                    ? "bg-white text-neutral-950"
-                    : "text-neutral-300 hover:bg-white/10 hover:text-white"
+  ? themeClasses.selectedChat
+  : `${themeClasses.textSoft} ${themeClasses.chatHover}`
                 }`}
               >
                 <button
@@ -1070,8 +1282,8 @@ async function expandAssistantResponse() {
                   onClick={() => togglePinnedChat(chat.id, !chat.pinned)}
                   className={`hidden h-7 w-7 shrink-0 items-center justify-center rounded-md transition group-hover:inline-flex ${
                     chat.id === activeChatId
-                      ? "hover:bg-neutral-200"
-                      : "hover:bg-white/10"
+  ? themeClasses.selectedChatHover
+  : "hover:bg-white/10"
                   }`}
                   aria-label={chat.pinned ? "Unpin chat" : "Pin chat"}
                   title={chat.pinned ? "Unpin chat" : "Pin chat"}
@@ -1120,7 +1332,7 @@ async function expandAssistantResponse() {
 
         <div className="relative border-t border-white/10 p-4">
           {isAccountMenuOpen ? (
-            <div className="absolute bottom-[88px] left-4 right-4 overflow-hidden rounded-lg border border-white/10 bg-neutral-950 shadow-2xl">
+            <div className={`absolute bottom-[88px] left-4 right-4 overflow-hidden rounded-lg border shadow-2xl ${themeClasses.dropdown}`}>
               <button
                 type="button"
                 onClick={() => {
@@ -1132,7 +1344,7 @@ async function expandAssistantResponse() {
   setProfileError("");
   void loadProfile();
 }}
-                className="flex h-10 w-full items-center gap-2 px-3 text-left text-sm text-neutral-200 transition hover:bg-white/10"
+                className={`flex h-10 w-full items-center gap-2 px-3 text-left text-sm ${themeClasses.textSoft} transition ${themeClasses.ghostHover}`}
               >
                 <User className="h-4 w-4" />
                 Your profile
@@ -1143,7 +1355,7 @@ async function expandAssistantResponse() {
     setIsSettingsOpen(true);
     setIsAccountMenuOpen(false);
   }}
-  className="flex h-10 w-full items-center gap-2 px-3 text-left text-sm text-neutral-200 transition hover:bg-white/10"
+  className={`flex h-10 w-full items-center gap-2 px-3 text-left text-sm ${themeClasses.textSoft} transition ${themeClasses.ghostHover}`}
 >
   <Settings className="h-4 w-4" />
   Settings
@@ -1151,7 +1363,7 @@ async function expandAssistantResponse() {
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/signin" })}
-                className="flex h-10 w-full items-center gap-2 px-3 text-left text-sm text-neutral-200 transition hover:bg-white/10"
+                className={`flex h-10 w-full items-center gap-2 px-3 text-left text-sm ${themeClasses.textSoft} transition ${themeClasses.ghostHover}`}
               >
                 <LogOut className="h-4 w-4" />
                 Logout
@@ -1162,16 +1374,16 @@ async function expandAssistantResponse() {
           <button
             type="button"
             onClick={() => setIsAccountMenuOpen((current) => !current)}
-            className="flex w-full items-center gap-3 rounded-lg border border-white/10 px-3 py-2 text-left transition hover:bg-white/10"
+            className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${themeClasses.subtleButton}`}
           >
-            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-sm font-semibold text-neutral-950">
+            <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold ${themeClasses.iconBox}`}>
               {displayName.slice(0, 1).toUpperCase()}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-white">
+              <span className={`block truncate text-sm font-medium ${themeClasses.text}`}>
                 {displayName}
               </span>
-              <span className="block truncate text-xs text-neutral-500">
+              <span className={`block truncate text-xs ${themeClasses.muted}`}>
                 {userEmail || "ChatForge account"}
               </span>
             </span>
@@ -1192,11 +1404,11 @@ async function expandAssistantResponse() {
             }}
             className="fixed inset-0 z-40 bg-black/60"
           />
-          <section className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/10 bg-neutral-950 shadow-2xl">
-            <div className="flex h-16 items-center justify-between border-b border-white/10 px-5">
+          <section className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l shadow-2xl ${themeClasses.drawer}`}>
+            <div className={`flex h-16 items-center justify-between border-b px-5 ${themeClasses.header}`}>
               <div>
                 <p className="text-sm font-semibold">Your profile</p>
-                <p className="text-xs text-neutral-500">
+                <p className={`text-xs ${themeClasses.muted}`}>
                   Manage your ChatForge account details
                 </p>
               </div>
@@ -1207,7 +1419,7 @@ async function expandAssistantResponse() {
                   setIsEditingProfile(false);
                   setProfileDraftName(profileName);
                 }}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-neutral-300 transition hover:bg-white/10 hover:text-white"
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition ${themeClasses.subtleButton}`}
                 aria-label="Close profile"
                 title="Close"
               >
@@ -1217,12 +1429,12 @@ async function expandAssistantResponse() {
 
             <div className="flex-1 overflow-y-auto p-5">
               <div className="mb-6 flex items-center gap-4">
-  <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-lg font-semibold text-neutral-950">
+  <div className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl text-lg font-semibold ${themeClasses.iconBox}`}>
     {getInitials()}
   </div>
   <div>
-    <p className="text-sm font-medium text-white">{displayName}</p>
-    <p className="text-xs text-neutral-500">{userEmail || "ChatForge account"}</p>
+    <p className={`text-sm font-medium ${themeClasses.text}`}>{displayName}</p>
+    <p className={`text-xs ${themeClasses.muted}`}>{userEmail || "ChatForge account"}</p>
   </div>
 </div>
 
@@ -1230,7 +1442,7 @@ async function expandAssistantResponse() {
                 {isEditingProfile ? (
                   <>
                     <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-neutral-300">
+                      <span className={`mb-2 block text-sm font-medium ${themeClasses.text}`}>
                         Name
                       </span>
                       <input
@@ -1238,38 +1450,38 @@ async function expandAssistantResponse() {
                         onChange={(event) =>
                           setProfileDraftName(event.target.value)
                         }
-                        className="h-11 w-full rounded-lg border border-white/10 bg-neutral-900 px-3 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-white/30"
+                        className={`h-11 w-full rounded-lg border px-3 text-sm outline-none transition ${themeClasses.input}`}
                         placeholder="Your name"
                       />
                     </label>
 
                     <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-neutral-300">
+                      <span className={`mb-2 block text-sm font-medium ${themeClasses.text}`}>
                         Email
                       </span>
                       <input
                         value={userEmail || ""}
                         readOnly
-                        className="h-11 w-full rounded-lg border border-white/10 bg-neutral-900 px-3 text-sm text-neutral-400 outline-none"
+                        className={`h-11 w-full rounded-lg border px-3 text-sm outline-none ${themeClasses.input}`}
                       />
                     </label>
                   </>
                 ) : (
                   <div className="space-y-3">
-                    <div className="rounded-lg border border-white/10 bg-neutral-900 px-4 py-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">
+                    <div className={`rounded-lg border px-4 py-3 ${themeClasses.card}`}>
+                      <p className={`text-xs uppercase tracking-[0.18em] ${themeClasses.muted}`}>
                         Name
                       </p>
-                      <p className="mt-1 text-sm text-white">
+                      <p className={`mt-1 text-sm ${themeClasses.text}`}>
                         {profileName || "No name added"}
                       </p>
                     </div>
 
-                    <div className="rounded-lg border border-white/10 bg-neutral-900 px-4 py-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">
+                    <div className={`rounded-lg border px-4 py-3 ${themeClasses.card}`}>
+                      <p className={`text-xs uppercase tracking-[0.18em] ${themeClasses.muted}`}>
                         Email
                       </p>
-                      <p className="mt-1 break-all text-sm text-white">
+                      <p className={`mt-1 break-all text-sm ${themeClasses.text}`}>
                         {userEmail || "No email available"}
                       </p>
                     </div>
@@ -1277,17 +1489,17 @@ async function expandAssistantResponse() {
                 )}
 
                 <div className="grid gap-3 sm:grid-cols-2">
-  <div className="rounded-lg border border-white/10 bg-neutral-900 px-4 py-3">
-    <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">
+  <div className={`rounded-lg border px-4 py-3 ${themeClasses.card}`}>
+    <p className={`text-xs uppercase tracking-[0.18em] ${themeClasses.muted}`}>
       Joined
     </p>
-    <p className="mt-1 text-sm text-white">
+    <p className={`mt-1 text-sm ${themeClasses.text}`}>
       {formatProfileDate(profileCreatedAt)}
     </p>
   </div>
 
-  <div className="rounded-lg border border-white/10 bg-neutral-900 px-4 py-3">
-    <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">
+  <div className={`rounded-lg border px-4 py-3 ${themeClasses.card}`}>
+    <p className={`text-xs uppercase tracking-[0.18em] ${themeClasses.muted}`}>
       Email status
     </p>
     <p
@@ -1301,20 +1513,20 @@ async function expandAssistantResponse() {
 </div>
 
                 {profileError ? (
-                  <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                  <div className={`rounded-lg border px-3 py-2 text-sm ${themeClasses.danger}`}>
                     {profileError}
                   </div>
                 ) : null}
 
                 {profileMessage ? (
-                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+                  <div className={`rounded-lg border px-3 py-2 text-sm ${themeClasses.success}`}>
                     {profileMessage}
                   </div>
                 ) : null}
               </div>
             </div>
 
-            <div className="border-t border-white/10 p-5">
+            <div className={`border-t p-5 ${themeClasses.divider}`}>
               {isEditingProfile ? (
                 <div className="flex gap-2">
                   <button
@@ -1324,7 +1536,7 @@ async function expandAssistantResponse() {
                       setProfileDraftName(profileName);
                       setProfileError("");
                     }}
-                    className="inline-flex h-11 flex-1 items-center justify-center rounded-lg border border-white/10 text-sm font-medium text-neutral-200 transition hover:bg-white/10"
+                    className={`inline-flex h-11 flex-1 items-center justify-center rounded-lg border text-sm font-medium transition ${themeClasses.subtleButton}`}
                   >
                     Cancel
                   </button>
@@ -1332,7 +1544,7 @@ async function expandAssistantResponse() {
                     type="button"
                     onClick={saveProfile}
                     disabled={isSavingProfile}
-                    className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-white text-sm font-medium text-neutral-950 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-60"
+                    className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${themeClasses.primaryButton}`}
                   >
                     <Save className="h-4 w-4" />
                     {isSavingProfile ? "Saving..." : "Save"}
@@ -1348,7 +1560,7 @@ async function expandAssistantResponse() {
       setProfileMessage("");
       setProfileError("");
     }}
-    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-white text-sm font-medium text-neutral-950 transition hover:bg-neutral-200"
+    className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg text-sm font-medium transition ${themeClasses.primaryButton}`}
   >
     <Edit3 className="h-4 w-4" />
     Edit profile
@@ -1357,7 +1569,7 @@ async function expandAssistantResponse() {
   {hasPassword ? (
     <a
       href="/forgot-password"
-      className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-white/10 text-sm font-medium text-neutral-200 transition hover:bg-white/10"
+      className={`inline-flex h-11 w-full items-center justify-center rounded-lg border text-sm font-medium transition ${themeClasses.subtleButton}`}
     >
       Change password
     </a>
@@ -1370,7 +1582,7 @@ async function expandAssistantResponse() {
       ) : null}
 
 {isLoadingProfile ? (
-  <div className="mb-4 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-neutral-400">
+  <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${themeClasses.card}`}>
     Loading profile...
   </div>
 ) : null}
@@ -1383,18 +1595,18 @@ async function expandAssistantResponse() {
       onClick={() => setIsSettingsOpen(false)}
       className="fixed inset-0 z-40 bg-black/60"
     />
-    <section className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/10 bg-neutral-950 shadow-2xl">
-      <div className="flex h-16 items-center justify-between border-b border-white/10 px-5">
+    <section className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l shadow-2xl ${themeClasses.drawer}`}>
+      <div className={`flex h-16 items-center justify-between border-b px-5 ${themeClasses.header}`}>
         <div>
           <p className="text-sm font-semibold">Settings</p>
-          <p className="text-xs text-neutral-500">
+          <p className={`text-xs ${themeClasses.muted}`}>
             Customize your ChatForge workspace
           </p>
         </div>
         <button
           type="button"
           onClick={() => setIsSettingsOpen(false)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-neutral-300 transition hover:bg-white/10 hover:text-white"
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition ${themeClasses.subtleButton}`}
           aria-label="Close settings"
           title="Close"
         >
@@ -1403,16 +1615,16 @@ async function expandAssistantResponse() {
       </div>
 
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
-        <div className="rounded-lg border border-white/10 bg-neutral-900 p-4">
-          <p className="text-sm font-medium text-white">Theme</p>
+        <div className={`rounded-lg border p-4 ${themeClasses.card}`}>
+          <p className={`text-sm font-medium ${themeClasses.text}`}>Theme</p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setTheme("dark")}
               className={`h-10 rounded-lg border text-sm transition ${
                 theme === "dark"
-                  ? "border-white bg-white text-neutral-950"
-                  : "border-white/10 text-neutral-300 hover:bg-white/10"
+                  ? themeClasses.primaryButton
+                  : themeClasses.subtleButton
               }`}
             >
               Dark
@@ -1422,20 +1634,42 @@ async function expandAssistantResponse() {
               onClick={() => setTheme("graphite")}
               className={`h-10 rounded-lg border text-sm transition ${
                 theme === "graphite"
-                  ? "border-white bg-white text-neutral-950"
-                  : "border-white/10 text-neutral-300 hover:bg-white/10"
+                  ? themeClasses.primaryButton
+                  : themeClasses.subtleButton
               }`}
             >
               Graphite
             </button>
+            <button
+              type="button"
+              onClick={() => setTheme("light")}
+              className={`h-10 rounded-lg border text-sm transition ${
+                theme === "light"
+                  ? themeClasses.primaryButton
+                  : themeClasses.subtleButton
+              }`}
+            >
+              Light
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme("midnight")}
+              className={`h-10 rounded-lg border text-sm transition ${
+                theme === "midnight"
+                  ? themeClasses.primaryButton
+                  : themeClasses.subtleButton
+              }`}
+            >
+              Midnight
+            </button>
           </div>
         </div>
 
-        <div className="rounded-lg border border-white/10 bg-neutral-900 p-4">
+        <div className={`rounded-lg border p-4 ${themeClasses.card}`}>
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-white">Compact mode</p>
-              <p className="mt-1 text-xs leading-5 text-neutral-500">
+              <p className={`text-sm font-medium ${themeClasses.text}`}>Compact mode</p>
+              <p className={`mt-1 text-xs leading-5 ${themeClasses.muted}`}>
                 Tightens message spacing for long research sessions.
               </p>
             </div>
@@ -1443,28 +1677,28 @@ async function expandAssistantResponse() {
               type="button"
               onClick={() => setIsCompactMode((current) => !current)}
               className={`h-6 w-11 rounded-full p-1 transition ${
-                isCompactMode ? "bg-white" : "bg-neutral-700"
+                isCompactMode ? themeClasses.toggleOn : themeClasses.toggleOff
               }`}
               aria-label="Toggle compact mode"
             >
               <span
                 className={`block h-4 w-4 rounded-full transition ${
                   isCompactMode
-                    ? "translate-x-5 bg-neutral-950"
-                    : "bg-neutral-300"
+                    ? `translate-x-5 ${themeClasses.toggleKnobOn}`
+                    : themeClasses.toggleKnobOff
                 }`}
               />
             </button>
           </div>
         </div>
 
-        <div className="rounded-lg border border-white/10 bg-neutral-900 p-4">
+        <div className={`rounded-lg border p-4 ${themeClasses.card}`}>
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-white">
+              <p className={`text-sm font-medium ${themeClasses.text}`}>
                 Typewriter animation
               </p>
-              <p className="mt-1 text-xs leading-5 text-neutral-500">
+              <p className={`mt-1 text-xs leading-5 ${themeClasses.muted}`}>
                 Animate new assistant responses as they appear.
               </p>
             </div>
@@ -1474,27 +1708,28 @@ async function expandAssistantResponse() {
                 setIsTypewriterEnabled((current) => !current)
               }
               className={`h-6 w-11 rounded-full p-1 transition ${
-                isTypewriterEnabled ? "bg-white" : "bg-neutral-700"
+                isTypewriterEnabled ? themeClasses.toggleOn : themeClasses.toggleOff
               }`}
               aria-label="Toggle typewriter animation"
             >
               <span
                 className={`block h-4 w-4 rounded-full transition ${
                   isTypewriterEnabled
-                    ? "translate-x-5 bg-neutral-950"
-                    : "bg-neutral-300"
+                    ? `translate-x-5 ${themeClasses.toggleKnobOn}`
+                    : themeClasses.toggleKnobOff
                 }`}
               />
             </button>
           </div>
         </div>
 
-        <div className="rounded-lg border border-white/10 bg-neutral-900 p-4">
-          <p className="text-sm font-medium text-white">Default model</p>
+        <div className={`rounded-lg border p-4 ${themeClasses.card}`}>
+          <p className={`text-sm font-medium ${themeClasses.text}`}>Default model</p>
           <div className="mt-3">
             <ModelSelector
               selectedModel={selectedModel}
               onChange={setSelectedModel}
+              className={themeClasses.text}
             />
           </div>
         </div>
@@ -1504,12 +1739,12 @@ async function expandAssistantResponse() {
 ) : null}
 
       <main className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-white/10 px-4">
+        <header className={`flex h-16 items-center justify-between border-b px-4 ${themeClasses.header}`}>
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-neutral-200 lg:hidden"
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border ${themeClasses.subtleButton} lg:hidden`}
               aria-label="Open sidebar"
               title="Open sidebar"
             >
@@ -1520,7 +1755,7 @@ async function expandAssistantResponse() {
               <p className="truncate text-sm font-medium">
                 {activeChat?.title || "New ChatForge conversation"}
               </p>
-              <p className="mt-1 inline-flex rounded-md border border-white/10 px-2 py-0.5 text-[11px] font-medium text-neutral-400">
+              <p className={`mt-1 inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium ${themeClasses.subtleButton}`}>
                 {selectedModel.label}
               </p>
             </div>
@@ -1531,7 +1766,7 @@ async function expandAssistantResponse() {
               type="button"
               onClick={clearActiveChat}
               disabled={messages.length === 0 || isSending}
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 px-3 text-sm font-medium text-neutral-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${themeClasses.subtleButton}`}
               title="Clear chat"
             >
               <Eraser className="h-4 w-4" />
@@ -1556,7 +1791,7 @@ async function expandAssistantResponse() {
                     type="button"
                     onClick={loadOlderMessages}
                     disabled={isLoadingOlder}
-                    className="h-9 rounded-lg border border-white/10 px-3 text-xs font-medium text-neutral-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    className={`h-9 rounded-lg border px-3 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${themeClasses.subtleButton}`}
                   >
                     {isLoadingOlder ? "Loading older..." : "Load older messages"}
                   </button>
@@ -1564,14 +1799,14 @@ async function expandAssistantResponse() {
               ) : null}
 
               {isLoadingMessages ? (
-                <div className="flex flex-1 items-center justify-center text-sm text-neutral-500">
+                <div className={`flex flex-1 items-center justify-center text-sm ${themeClasses.muted}`}>
                   Loading messages...
                 </div>
               ) : null}
 
               {!isLoadingMessages && !activeChatId ? (
                 <div className="flex flex-1 items-center justify-center text-center">
-                  <div className="max-w-2xl">
+                  <div className="w-full max-w-5xl">
                     <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white text-lg font-semibold text-neutral-950">
                       CF
                     </div>
@@ -1587,6 +1822,7 @@ async function expandAssistantResponse() {
                       <ModelSelector
                         selectedModel={selectedModel}
                         onChange={setSelectedModel}
+                        className={themeClasses.text}
                       />
 
                       <button
@@ -1599,21 +1835,21 @@ async function expandAssistantResponse() {
                       </button>
                     </div>
 
-                    <div className="mt-7 grid gap-2 sm:grid-cols-2">
+                    <div className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       {PROMPT_SUGGESTIONS.map((suggestion) => (
                         <button
                           key={suggestion.title}
                           type="button"
                           onClick={() => createChat(suggestion.prompt)}
-                          className="rounded-lg border border-white/10 bg-neutral-900 px-4 py-3 text-left transition hover:border-white/20 hover:bg-neutral-800"
+                          className={`min-h-32 rounded-lg border px-3 py-3 text-left transition ${themeClasses.card} ${themeClasses.cardHover}`}
                         >
-                         <span className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white text-sm font-semibold text-neutral-950">
+                         <span className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold ${themeClasses.primaryButton}`}>
   {suggestion.title.slice(0, 1)}
 </span>
-<span className="block text-sm font-medium text-white">
+<span className={`block text-sm font-medium ${themeClasses.text}`}>
   {suggestion.title}
 </span>
-                          <span className="mt-1 block line-clamp-2 text-xs leading-5 text-neutral-500">
+                          <span className={`mt-1 block line-clamp-3 text-xs leading-5 ${themeClasses.muted}`}>
                             {suggestion.prompt}
                           </span>
                         </button>
@@ -1621,7 +1857,7 @@ async function expandAssistantResponse() {
                     </div>
 
                     {error ? (
-                      <div className="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                      <div className={`rounded-lg border px-3 py-2 text-sm ${themeClasses.danger}`}>
                         {error}
                       </div>
                     ) : null}
@@ -1651,6 +1887,7 @@ async function expandAssistantResponse() {
                     <MessageBubble
   key={message.id}
   message={message}
+  themeClasses={themeClasses}
   animate={
     isTypewriterEnabled &&
     message.id === animatedMessageId &&
@@ -1668,7 +1905,7 @@ async function expandAssistantResponse() {
 
                   {isSending ? (
                     <div className="flex justify-start">
-                      <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
+                      <div className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm ${themeClasses.card}`}>
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <ThinkingDots />
                       </div>
@@ -1682,10 +1919,10 @@ async function expandAssistantResponse() {
           </div>
 
           {activeChatId ? (
-            <div className="border-t border-white/10 bg-neutral-950 px-4 py-4">
+            <div className={`border-t px-4 py-4 ${themeClasses.panel}`}>
               <div className="mx-auto w-full max-w-3xl">
                 {error ? (
-                  <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                  <div className={`mb-3 rounded-lg border px-3 py-2 text-sm ${themeClasses.danger}`}>
                     {error}
                   </div>
                 ) : null}
@@ -1711,11 +1948,12 @@ async function expandAssistantResponse() {
                     <ModelSelector
                       selectedModel={selectedModel}
                       onChange={setSelectedModel}
+                      className={themeClasses.text}
                       disabled={isSending}
                     />
                   </div>
 
-                  <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-neutral-900 p-2">
+                  <div className={`flex items-end gap-2 rounded-2xl border p-2 ${themeClasses.composer}`}>
                     <textarea
                       value={input}
                       onChange={(event) => setInput(event.target.value)}
@@ -1726,7 +1964,7 @@ async function expandAssistantResponse() {
                           ? "Edit your message and resend..."
                           : "Message ChatForge..."
                       }
-                      className="max-h-40 min-h-10 flex-1 resize-none bg-transparent px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-neutral-500 disabled:cursor-not-allowed"
+                      className={`max-h-40 min-h-10 flex-1 resize-none bg-transparent px-3 py-2 text-sm leading-6 outline-none placeholder:text-neutral-500 disabled:cursor-not-allowed ${themeClasses.text}`}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" && !event.shiftKey) {
                           event.preventDefault();
@@ -1739,7 +1977,7 @@ async function expandAssistantResponse() {
                       <button
                         type="button"
                         onClick={stopResponse}
-                        className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl border border-white/10 px-3 text-sm font-medium text-neutral-200 transition hover:bg-white/10"
+                        className={`inline-flex h-10 shrink-0 items-center justify-center rounded-xl border px-3 text-sm font-medium transition ${themeClasses.subtleButton}`}
                       >
                         Stop
                       </button>
@@ -1747,7 +1985,7 @@ async function expandAssistantResponse() {
                       <button
                         type="submit"
                         disabled={!activeChatId || !input.trim()}
-                        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-neutral-950 transition hover:scale-105 hover:bg-neutral-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                        className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 ${themeClasses.primaryButton}`}
                         aria-label={
                           editingMessage ? "Update and resend" : "Send message"
                         }

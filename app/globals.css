@@ -66,3 +66,13 @@ body {
 .thinking-dot:nth-child(3) {
   animation-delay: 280ms;
 }
+
+button:not(:disabled),
+a[href],
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}

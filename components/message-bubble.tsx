@@ -26,6 +26,7 @@ export function MessageBubble({
   message,
   animate,
   isStreaming,
+  themeClasses,
   onEditUserMessage,
   onRegenerateAssistantMessage,
   onContinueAssistantMessage,
@@ -36,6 +37,19 @@ export function MessageBubble({
   message: ChatMessage;
   animate: boolean;
   isStreaming?: boolean;
+  themeClasses: {
+  userBubble: string;
+  assistantAction: string;
+  border: string;
+  muted: string;
+  text: string;
+  textSoft: string;
+  assistantResponse: string;
+assistantTable: string;
+surfaceMuted: string;
+codeBlock: string;
+inlineCode: string;
+};
   onEditUserMessage?: (message: ChatMessage) => void;
   onRegenerateAssistantMessage?: (message: ChatMessage) => void;
   onContinueAssistantMessage?: (message: ChatMessage) => void;
@@ -65,20 +79,20 @@ export function MessageBubble({
       <div
         className={`relative px-4 py-3 text-sm leading-6 ${
           isUser
-            ? "max-w-[85%] rounded-2xl bg-white text-neutral-950 shadow-sm sm:max-w-[72%]"
-            : "w-full max-w-full text-neutral-100"
+            ? `max-w-[85%] rounded-2xl shadow-sm sm:max-w-[72%] ${themeClasses.userBubble}`
+            : `w-full max-w-full ${themeClasses.textSoft}`
         }`}
       >
         {isUser ? (
           <p className="whitespace-pre-wrap">{displayedContent}</p>
         ) : (
-          <div className="max-w-full overflow-x-auto">
+          <div className={`max-w-full overflow-x-auto ${themeClasses.assistantResponse}`}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 table({ children }) {
                   return (
-                    <div className="my-5 w-full overflow-x-auto rounded-xl border border-white/10">
+                    <div className={`my-5 w-full overflow-x-auto rounded-xl border ${themeClasses.assistantTable}`}>
                       <table className="w-max min-w-full table-auto border-collapse text-left text-sm">
                         {children}
                       </table>
@@ -86,7 +100,7 @@ export function MessageBubble({
                   );
                 },
                 thead({ children }) {
-                  return <thead className="bg-neutral-800">{children}</thead>;
+                  return <thead className={themeClasses.surfaceMuted}>{children}</thead>;
                 },
                 tbody({ children }) {
                   return (
@@ -104,20 +118,20 @@ export function MessageBubble({
                 },
                 th({ children }) {
                   return (
-                    <th className="border-r border-white/10 px-4 py-3 align-top text-xs font-semibold uppercase tracking-[0.08em] text-white last:border-r-0">
+                    <th className={`border-r px-4 py-3 align-top text-xs font-semibold uppercase tracking-[0.08em] last:border-r-0 ${themeClasses.border} ${themeClasses.text}`}>
                       {children}
                     </th>
                   );
                 },
                 td({ children }) {
-                  return (
-                    <td className="whitespace-nowrap border-r border-white/10 px-4 py-3 align-top text-neutral-200 last:border-r-0">
-                      <div className="max-w-[360px] whitespace-normal break-words leading-6">
-                        {children}
-                      </div>
-                    </td>
-                  );
-                },
+  return (
+    <td className={`whitespace-nowrap border-r px-4 py-3 align-top last:border-r-0 ${themeClasses.border} ${themeClasses.textSoft}`}>
+      <div className="max-w-[360px] whitespace-normal break-words leading-6">
+        {children}
+      </div>
+    </td>
+  );
+},
                 p({ children }) {
                   return <p className="my-3 leading-7">{children}</p>;
                 },
@@ -139,19 +153,19 @@ export function MessageBubble({
                   return <li className="leading-7">{children}</li>;
                 },
                 code({ children }) {
-                  return (
-                    <code className="rounded bg-white/10 px-1 py-0.5 text-neutral-100">
-                      {children}
-                    </code>
-                  );
-                },
+  return (
+    <code className={`rounded px-1 py-0.5 ${themeClasses.inlineCode}`}>
+      {children}
+    </code>
+  );
+},
                 pre({ children }) {
-                  return (
-                    <pre className="my-4 overflow-x-auto rounded-lg border border-white/10 bg-neutral-950 p-4">
-                      {children}
-                    </pre>
-                  );
-                },
+  return (
+    <pre className={`my-4 overflow-x-auto rounded-lg border p-4 ${themeClasses.codeBlock}`}>
+      {children}
+    </pre>
+  );
+},
               }}
             >
               {displayedContent}
@@ -164,7 +178,7 @@ export function MessageBubble({
   <button
     type="button"
     onClick={copyMessage}
-    className="inline-flex h-7 w-7 items-center justify-center rounded-md text-neutral-500 opacity-100 transition hover:bg-neutral-200 hover:text-neutral-950 sm:opacity-0 sm:group-hover:opacity-100"
+    className={`inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border transition hover:-translate-y-0.5 active:translate-y-0 ${themeClasses.assistantAction}`}
     aria-label="Copy user message"
     title="Copy"
   >
@@ -178,7 +192,7 @@ export function MessageBubble({
   <button
     type="button"
     onClick={() => onEditUserMessage?.(message)}
-    className="inline-flex h-7 w-7 items-center justify-center rounded-md text-neutral-500 opacity-100 transition hover:bg-neutral-200 hover:text-neutral-950 sm:opacity-0 sm:group-hover:opacity-100"
+    className={`inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border opacity-100 transition hover:-translate-y-0.5 active:translate-y-0 sm:opacity-0 sm:group-hover:opacity-100 ${themeClasses.assistantAction}`}
     aria-label="Edit and resend message"
     title="Edit and resend"
   >
@@ -196,53 +210,72 @@ export function MessageBubble({
             )}
 
             <button
-              type="button"
-              onClick={copyMessage}
-              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs font-medium text-neutral-300 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/10 hover:text-white active:translate-y-0"
-            >
-              {isCopied ? (
-                <Check className="h-3.5 w-3.5" />
-              ) : (
-                <Copy className="h-3.5 w-3.5" />
-              )}
-            <span className="sr-only">Copy</span>
-            </button>
+  type="button"
+  onClick={copyMessage}
+  title="Copy"
+  className={`group/action relative inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border transition hover:-translate-y-0.5 active:translate-y-0 ${themeClasses.assistantAction}`}
+>
+  {isCopied ? (
+    <Check className="h-3.5 w-3.5" />
+  ) : (
+    <Copy className="h-3.5 w-3.5" />
+  )}
+  <span className="sr-only">Copy</span>
+  <span className={`pointer-events-none absolute -top-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-1 text-[11px] shadow-lg group-hover/action:block ${themeClasses.codeBlock}`}>
+    Copy
+  </span>
+</button>
 
             <button
-              type="button"
-              onClick={() => onRegenerateAssistantMessage?.(message)}
-              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs font-medium text-neutral-300 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/10 hover:text-white active:translate-y-0"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-             <span className="sr-only">Regenerate</span>
-            </button>
+  type="button"
+  onClick={() => onRegenerateAssistantMessage?.(message)}
+  title="Regenerate"
+  className={`group/action relative inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border transition hover:-translate-y-0.5 active:translate-y-0 ${themeClasses.assistantAction}`}
+>
+  <RefreshCw className="h-3.5 w-3.5" />
+  <span className="sr-only">Regenerate</span>
+  <span className={`pointer-events-none absolute -top-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-1 text-[11px] shadow-lg group-hover/action:block ${themeClasses.codeBlock}`}>
+    Regenerate
+  </span>
+</button>
+           <button
+  type="button"
+  onClick={() => onContinueAssistantMessage?.(message)}
+  title="Continue"
+  className={`group/action relative inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border transition hover:-translate-y-0.5 active:translate-y-0 ${themeClasses.assistantAction}`}
+>
+  <FileText className="h-3.5 w-3.5" />
+  <span className="sr-only">Continue</span>
+  <span className={`pointer-events-none absolute -top-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-1 text-[11px] shadow-lg group-hover/action:block ${themeClasses.codeBlock}`}>
+    Continue
+  </span>
+</button>
 
             <button
-              type="button"
-              onClick={() => onContinueAssistantMessage?.(message)}
-              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs font-medium text-neutral-300 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/10 hover:text-white active:translate-y-0"
-            >
-              <FileText className="h-3.5 w-3.5" />
-             <span className="sr-only">Continue</span>
-            </button>
+  type="button"
+  onClick={() => onShortenAssistantMessage?.(message)}
+  title="Shorter"
+  className={`group/action relative inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border transition hover:-translate-y-0.5 active:translate-y-0 ${themeClasses.assistantAction}`}
+>
+  <ListCollapse className="h-3.5 w-3.5" />
+  <span className="sr-only">Shorter</span>
+  <span className={`pointer-events-none absolute -top-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-1 text-[11px] shadow-lg group-hover/action:block ${themeClasses.codeBlock}`}>
+    Shorter
+  </span>
+</button>
 
-            <button
-              type="button"
-              onClick={() => onShortenAssistantMessage?.(message)}
-              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs font-medium text-neutral-300 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/10 hover:text-white active:translate-y-0"
-            >
-              <ListCollapse className="h-3.5 w-3.5" />
-            <span className="sr-only">Shorter</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onExpandAssistantMessage?.(message)}
-              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs font-medium text-neutral-300 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/10 hover:text-white active:translate-y-0"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span className="sr-only">More detailed</span>
-            </button>
+           <button
+  type="button"
+  onClick={() => onExpandAssistantMessage?.(message)}
+  title="More detailed"
+  className={`group/action relative inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border transition hover:-translate-y-0.5 active:translate-y-0 ${themeClasses.assistantAction}`}
+>
+  <Sparkles className="h-3.5 w-3.5" />
+  <span className="sr-only">More detailed</span>
+  <span className={`pointer-events-none absolute -top-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-1 text-[11px] shadow-lg group-hover/action:block ${themeClasses.codeBlock}`}>
+    More detailed
+  </span>
+</button>
           </div>
         ) : null}
       </div>

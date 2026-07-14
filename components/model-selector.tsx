@@ -7,38 +7,38 @@ export function ModelSelector({
   selectedModel,
   onChange,
   disabled,
+  className = "",
 }: {
   selectedModel: ModelOption;
   onChange: (model: ModelOption) => void;
   disabled?: boolean;
+  className?: string;
 }) {
-  return (
-    <label className="block">
-      <span className="sr-only">Model provider</span>
-      <select
-        value={`${selectedModel.provider}:${selectedModel.model}`}
-        disabled={disabled}
-        onChange={(event) => {
-          const nextModel = MODEL_OPTIONS.find(
-            (option) =>
-              `${option.provider}:${option.model}` === event.target.value
-          );
+  function handleChange(value: string) {
+    const nextModel = MODEL_OPTIONS.find(
+      (model) => `${model.provider}:${model.model}` === value
+    );
 
-          if (nextModel) {
-            onChange(nextModel);
-          }
-        }}
-        className="h-10 rounded-lg border border-white/10 bg-neutral-900 px-3 text-sm text-neutral-200 outline-none transition hover:bg-neutral-800 focus:border-white/30 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {MODEL_OPTIONS.map((option) => (
-          <option
-            key={`${option.provider}:${option.model}`}
-            value={`${option.provider}:${option.model}`}
-          >
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    if (nextModel) {
+      onChange(nextModel);
+    }
+  }
+
+  return (
+    <select
+      value={`${selectedModel.provider}:${selectedModel.model}`}
+      onChange={(event) => handleChange(event.target.value)}
+      disabled={disabled}
+      className={`h-12 rounded-lg border border-current/20 bg-transparent px-4 text-sm font-medium outline-none transition hover:bg-current/5 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+    >
+      {MODEL_OPTIONS.map((model) => (
+        <option
+          key={`${model.provider}:${model.model}`}
+          value={`${model.provider}:${model.model}`}
+        >
+          {model.label}
+        </option>
+      ))}
+    </select>
   );
 }
