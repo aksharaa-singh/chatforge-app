@@ -834,12 +834,15 @@ async function sendMessageToChat(chatId: string, content: string) {
 
     setEditingMessage(null);
     setInput("");
+    showToast("Regenerating response...", "info");
     await editAndResendMessage(previousUserMessage.content, previousUserMessage);
   }
   async function continueAssistantResponse() {
   if (!activeChatId || isSending) {
     return;
   }
+
+  showToast("Continuing response...", "info");
 
   await sendMessageToChat(
     activeChatId,
@@ -852,6 +855,8 @@ async function shortenAssistantResponse() {
     return;
   }
 
+  showToast("Asking ChatForge for a shorter version...", "info");
+
   await sendMessageToChat(
     activeChatId,
     "Rewrite your previous response in a shorter, clearer version."
@@ -862,6 +867,8 @@ async function expandAssistantResponse() {
   if (!activeChatId || isSending) {
     return;
   }
+
+  showToast("Asking ChatForge for more detail...", "info");
 
   await sendMessageToChat(
     activeChatId,
